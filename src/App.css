@@ -1,16 +1,11 @@
-body {
-  color: #4d4d4d;
-  font-family: "Calibri", "Arial";
-  font-size: 1rem;
-  line-height: 1.6;
-}
+
 table {
   border-collapse: collapse;
   border-spacing: 0;
 }
 td {
   border: grey solid 1px;
-  padding: 0.5rem;
+  padding: 0.3rem;
   white-space: nowrap;
 }
 

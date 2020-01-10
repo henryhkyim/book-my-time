@@ -1,34 +1,71 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import './Calendar.css';
 
 class Calendar extends React.Component {
 
   constructor(props) {
     super(props)
+    let currentDate = new Date(this.props.currentYear, this.props.currentMonth, this.props.currentDate)
     this.state = {
-      currentDate: new Date(this.props.currentYear, this.props.currentMonth, this.props.currentDate)
+      currentDate: currentDate,
+      startOfWeek: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - currentDate.getDay())
     }
     this.renderMonthView = this.renderMonthView.bind(this)
+    this.renderWeekView = this.renderWeekView.bind(this)
     this.renderMonthViewRow = this.renderMonthViewRow.bind(this)
     this.renderMonthViewCell = this.renderMonthViewCell.bind(this)
     this.handleMonthViewPrev = this.handleMonthViewPrev.bind(this)
     this.handleMonthViewNext = this.handleMonthViewNext.bind(this)
+    this.handleDayCell = this.handleDayCell.bind(this)
   }
 
   handleMonthViewPrev() {
+    let newCurrentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() - 1, this.state.currentDate.getDate())
+    let newStartOfWeek = new Date(newCurrentDate.getFullYear(), newCurrentDate.getMonth(), newCurrentDate.getDate() - newCurrentDate.getDay())
     this.setState({
-      currentDate: new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() - 1, this.state.currentDate.getDate())
+      currentDate: newCurrentDate,
+      startOfWeek: newStartOfWeek
     })
   }
 
   handleMonthViewNext() {
+    let newCurrentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, this.state.currentDate.getDate())
+    let newStartOfWeek = new Date(newCurrentDate.getFullYear(), newCurrentDate.getMonth(), newCurrentDate.getDate() - newCurrentDate.getDay())
     this.setState({
-      currentDate: new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, this.state.currentDate.getDate())
+      currentDate: newCurrentDate,
+      startOfWeek: newStartOfWeek
     })
   }
 
+  handleDayCell(day) {
+    if (day !== this.state.currentDate.getDate()) {
+      let newCurrentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), day)
+      let newStartOfWeek = new Date(newCurrentDate.getFullYear(), newCurrentDate.getMonth(), newCurrentDate.getDate() - newCurrentDate.getDay())
+      if (+newStartOfWeek !== +this.state.startOfWeek) {
+        this.setState({
+          currentDate: newCurrentDate,
+          startOfWeek: newStartOfWeek
+        })
+      } else {
+        this.setState({
+          currentDate: newCurrentDate
+        })
+      }
+    }
+    // else {
+    //   console.log("Same day, do nothing!")
+    // }
+  }
+
   renderMonthViewCell(day) {
-    return <td>{day === 0 ? "" : day}</td>;
+    let jsx = ""
+    if (day === 0) {
+      jsx = <td>{day === 0 ? "" : day}</td>
+    } else {
+      jsx = <td onClick={()=>this.handleDayCell(day)}>{day === 0 ? "" : day}</td>
+    }
+    return jsx;
   }
 
   renderMonthViewRow(row) {
@@ -70,7 +107,7 @@ class Calendar extends React.Component {
       }
     }
 
-    return  <table>
+    return  <table className="center">
               <caption>
                 <a href="#" onClick={this.handleMonthViewPrev}>{"<<"}</a>
                 &nbsp;&nbsp;&nbsp;{strCurrentMonth} {currentYear}&nbsp;&nbsp;&nbsp;
@@ -87,12 +124,38 @@ class Calendar extends React.Component {
             </table>;
   }
 
-  render() {
-    let display = <h1>Undefined view {this.props.view}</h1>;
-    if (this.props.view === "month") {
-      display = this.renderMonthView();
+  renderWeekView() {
+    let week = []
+    let d = this.state.startOfWeek
+    for (let i = 0; i < 7; i++) {
+      week.push(d)
+      d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
     }
-    return <div>{display}</div>;
+    // console.log(week)
+    let timeList = ["10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00", "16:00-17:00", "17:00-18:00", "18:00-19:00", "19:00-20:00", "20:00-21:00"]
+    return <table className="center">
+            <thead>
+              <tr>
+                <th></th>{week.map((d)=><th>&nbsp;{d.getDate()}{d.toString().split(" ")[1]}&nbsp;</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {timeList.map(
+                (t) => <tr><td>{t}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                )}
+            </tbody>
+           </table>;
+  }
+
+  render() {
+    let monthView = this.renderMonthView();
+    let weekView = this.renderWeekView();
+    return <div>
+             <div><h1>{this.props.who}'s Calendar</h1></div>
+             <div>{monthView}</div>
+             <br/>
+             <div>{weekView}</div>
+           </div>;
   }
 }
 
@@ -100,7 +163,8 @@ Calendar.propTypes = {
   view: PropTypes.string,
   currentYear: PropTypes.number,
   currentMonth: PropTypes.number,
-  currentDate: PropTypes.number
+  currentDate: PropTypes.number,
+  who: PropTypes.string
 };
 
 Calendar.defaultProps = {
