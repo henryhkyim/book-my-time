@@ -1,5 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { getMonthStr, getStartDateOfWeek } from './utils/DateUtils.js';
+import { getOpenSlotsByWeek } from './service/BookMyTimeService.js';
 import './Calendar.css';
 
 class Calendar extends React.Component {
@@ -9,7 +11,7 @@ class Calendar extends React.Component {
     let currentDate = new Date(this.props.currentYear, this.props.currentMonth, this.props.currentDate)
     this.state = {
       currentDate: currentDate,
-      startOfWeek: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - currentDate.getDay())
+      startOfWeek: getStartDateOfWeek(currentDate, 0)
     }
     this.renderMonthView = this.renderMonthView.bind(this)
     this.renderWeekView = this.renderWeekView.bind(this)
@@ -22,7 +24,7 @@ class Calendar extends React.Component {
 
   handleMonthViewPrev() {
     let newCurrentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() - 1, this.state.currentDate.getDate())
-    let newStartOfWeek = new Date(newCurrentDate.getFullYear(), newCurrentDate.getMonth(), newCurrentDate.getDate() - newCurrentDate.getDay())
+    let newStartOfWeek = getStartDateOfWeek(newCurrentDate, 0)
     this.setState({
       currentDate: newCurrentDate,
       startOfWeek: newStartOfWeek
@@ -31,7 +33,7 @@ class Calendar extends React.Component {
 
   handleMonthViewNext() {
     let newCurrentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, this.state.currentDate.getDate())
-    let newStartOfWeek = new Date(newCurrentDate.getFullYear(), newCurrentDate.getMonth(), newCurrentDate.getDate() - newCurrentDate.getDay())
+    let newStartOfWeek = getStartDateOfWeek(newCurrentDate, 0)
     this.setState({
       currentDate: newCurrentDate,
       startOfWeek: newStartOfWeek
@@ -41,7 +43,7 @@ class Calendar extends React.Component {
   handleDayCell(day) {
     if (day !== this.state.currentDate.getDate()) {
       let newCurrentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), day)
-      let newStartOfWeek = new Date(newCurrentDate.getFullYear(), newCurrentDate.getMonth(), newCurrentDate.getDate() - newCurrentDate.getDay())
+      let newStartOfWeek = getStartDateOfWeek(newCurrentDate, 0)
       if (+newStartOfWeek !== +this.state.startOfWeek) {
         this.setState({
           currentDate: newCurrentDate,
@@ -53,9 +55,6 @@ class Calendar extends React.Component {
         })
       }
     }
-    // else {
-    //   console.log("Same day, do nothing!")
-    // }
   }
 
   renderMonthViewCell(day) {
@@ -69,15 +68,13 @@ class Calendar extends React.Component {
   }
 
   renderMonthViewRow(row) {
-    return <tr>
-        {row.map(this.renderMonthViewCell)}
-         </tr>;
+    return <tr>{row.map(this.renderMonthViewCell)}</tr>;
   }
 
   renderMonthView() {
     const currentDate = this.state.currentDate;
     const currentMonth = currentDate.getMonth();
-    const strCurrentMonth = currentDate.toString().split(" ")[1];
+    const strCurrentMonth = getMonthStr(currentDate);
     const currentYear = currentDate.getFullYear();
     const firstDay = (new Date(currentYear, currentMonth, 1)).getDay();
     const lastDay = (new Date(currentYear, currentMonth + 1, 0)).getDate();
@@ -131,12 +128,11 @@ class Calendar extends React.Component {
       week.push(d)
       d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
     }
-    // console.log(week)
     let timeList = ["10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00", "16:00-17:00", "17:00-18:00", "18:00-19:00", "19:00-20:00", "20:00-21:00"]
     return <table className="center">
             <thead>
               <tr>
-                <th></th>{week.map((d)=><th>&nbsp;{d.getDate()}{d.toString().split(" ")[1]}&nbsp;</th>)}
+                <th></th>{week.map((d)=><th>&nbsp;{d.getDate()}{getMonthStr(d)}&nbsp;</th>)}
               </tr>
             </thead>
             <tbody>
@@ -150,6 +146,8 @@ class Calendar extends React.Component {
   render() {
     let monthView = this.renderMonthView();
     let weekView = this.renderWeekView();
+    let x = getOpenSlotsByWeek(getStartDateOfWeek(this.state.currentDate, 0))
+    console.log(x)
     return <div>
              <div><h1>{this.props.who}'s Calendar</h1></div>
              <div>{monthView}</div>
